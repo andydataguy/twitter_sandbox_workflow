@@ -1,0 +1,19 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+.logfire
+
+# Virtual environments
+.venv
+
+# Working Docs and Tools
+docs/
+Code_aggregator/
+
+# Private Keys
+.env
+
