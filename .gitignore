@@ -6,6 +6,7 @@ dist/
 wheels/
 *.egg-info
 .logfire
+.langgraph_api
 
 # Virtual environments
 .venv

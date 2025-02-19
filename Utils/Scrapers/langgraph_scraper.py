@@ -34,23 +34,25 @@ def log_info(msg: str):
     print(msg)
 
 # Constants
-MAX_CONCURRENT_REQUESTS = 3
-REQUEST_DELAY = 2
-OUTPUT_FILE = str(Path(__file__).parent / "pydanticai_docs.md")
+MAX_CONCURRENT_REQUESTS = 6
+REQUEST_DELAY = 1
+OUTPUT_FILE = str(Path(__file__).parent / "langgraph_docs.md")
 
-def get_pydantic_ai_docs_urls() -> List[str]:
-    """Get URLs from Pydantic AI docs sitemap."""
-    sitemap_url = "https://ai.pydantic.dev/sitemap.xml"
+def get_langgraph_docs_urls() -> List[str]:
+    """Get URLs from LangGraph docs sitemap."""
+    sitemap_url = "https://langchain-ai.github.io/langgraph/sitemap.xml"
     try:
         response = requests.get(sitemap_url)
         response.raise_for_status()
         
-        # Parse the XML
+        # Parse XML
         root = ElementTree.fromstring(response.content)
         
-        # Extract all URLs from the sitemap
-        namespace = {'ns': 'http://www.sitemaps.org/schemas/sitemap/0.9'}
-        urls = [loc.text for loc in root.findall('.//ns:loc', namespace)]
+        # Extract URLs from sitemap
+        urls = [
+            url.find('{http://www.sitemaps.org/schemas/sitemap/0.9}loc').text
+            for url in root.findall('{http://www.sitemaps.org/schemas/sitemap/0.9}url')
+        ]
         
         logger.info(f"Found {len(urls)} URLs in sitemap")
         return urls
@@ -104,8 +106,8 @@ async def get_page_title(url: str, session: ClientSession, semaphore: asyncio.Se
                 
                 # Get title
                 title = soup.title.string if soup.title else ''
-                if 'Pydantic AI' in title:
-                    title = title.replace('Pydantic AI', '').strip(' |')
+                if 'LangGraph' in title:
+                    title = title.replace('LangGraph', '').strip(' |')
                 
                 # Get section and subsection
                 section, subsection = extract_sections_from_url(url)
@@ -162,7 +164,7 @@ async def get_page_content(page: PageInfo, session: ClientSession, semaphore: as
                     page.content = '\n\n'.join(content)
                     
                     # Get anchor for table of contents
-                    page.anchor = f"#{page.title.lower().replace(' ', '-')}"
+                    page.anchor = f"#{page.title.lower().replace(' ', '-')}"  # Use title for anchor
                 
                 logger.info(f"Processed content for: {page.title}")
                 pbar.update(1)
@@ -182,32 +184,61 @@ async def process_section_pages(pages: List[PageInfo], session: ClientSession, s
         result = await completed
         if result:
             yield result
-
+            
+def generate_anchor(title: str, existing_anchors: Dict[str, int]) -> str:
+    """Generates a unique anchor link for a title."""
+    # Basic cleaning: lowercase, replace spaces with hyphens, remove special chars
+    anchor = title.lower().replace(" ", "-").replace(":", "").replace("(", "").replace(")", "").replace("/", "").replace("'", "").replace('"', "").replace(".", "").replace(",", "")
+    
+    # Handle duplicates by appending a counter
+    count = existing_anchors.get(anchor, 0) + 1
+    existing_anchors[anchor] = count
+    if count > 1:
+        anchor = f"{anchor}-{count}"  # Append counter for duplicates
+    return f"#{anchor}"
+            
 def write_section_header(f, section: str, pages: List[PageInfo]):
     """Write a section header to the markdown file."""
     f.write(f"\n## {section}\n\n")
+
+    # Keep track of used anchors to prevent duplicates
+    existing_anchors: Dict[str, int] = {}
     
     # Write table of contents for section
     if any(page.subsection for page in pages):
         subsections = {}
         for page in pages:
             if page.subsection:
-                subsection = page.subsection.split('/')[0]
+                subsection = page.subsection.split('/')[0] #Take the first part if they are multi-level
                 if subsection not in subsections:
                     subsections[subsection] = []
                 subsections[subsection].append(page)
         
-        for subsection, subpages in subsections.items():
+        for subsection, subpages in sorted(subsections.items()): #Added sorting.
             f.write(f"### {subsection}\n\n")
-            for page in subpages:
+            for page in sorted(subpages, key=lambda x: x.title): #Added sorting.
                 title = page.title or page.subsection.split('/')[-1]
+                page.anchor = generate_anchor(title, existing_anchors)  # Generate and store
                 f.write(f"- [{title}]({page.anchor})\n")
         f.write("\n")
     else:
         for page in pages:
-            title = page.title or page.section
+            title = page.title or page.section #Or section so something populates.
+            page.anchor = generate_anchor(title, existing_anchors) #Generate and store.
             f.write(f"- [{title}]({page.anchor})\n")
         f.write("\n")
+
+    # Write actual content with headers using generated anchors.
+    for page in pages:
+        if page.subsection:
+            # If its a subsection, we want to do an H3
+             f.write(f"\n### <a name='{page.anchor[1:]}'></a>{page.title}\n\n")  # Create an anchor tag.
+        else:
+            f.write(f"\n### <a name='{page.anchor[1:]}'></a>{page.title}\n\n") # Create an anchor tag.
+        if page.content:
+            f.write(f"{page.content}\n\n")
+    f.write("---\n")  # Separator between pages
+    f.flush() #Flush
 
 async def process_urls_streaming(urls: List[str]):
     """Process URLs in a streaming fashion to minimize memory usage."""
@@ -226,13 +257,13 @@ async def process_urls_streaming(urls: List[str]):
     
     # Process each section
     with open(OUTPUT_FILE, 'w', encoding='utf-8') as f:
-        f.write("# Pydantic AI Documentation\n\n")
+        f.write("# LangGraph Documentation\n\n")
         f.write("Generated on: " + datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "\n\n")
         
         # Write main table of contents
         f.write("## Table of Contents\n\n")
         for section in pages_by_section:
-            f.write(f"- [{section}](#{section.lower().replace(' ', '-')})\n")
+             f.write(f"- [{section}](#{section.lower().replace(' ', '-')})\n") #Added the section title
         f.write("\n")
         
         # Process each section
@@ -243,7 +274,7 @@ async def process_urls_streaming(urls: List[str]):
             async with aiohttp.ClientSession() as session:
                 semaphore = asyncio.Semaphore(MAX_CONCURRENT_REQUESTS)
                 
-                for section, pages in pages_by_section.items():
+                for section, pages in sorted(pages_by_section.items()): #Sorted
                     logger.info(f"Processing section: {section}")
                     
                     # Write section header with table of contents
@@ -253,18 +284,17 @@ async def process_urls_streaming(urls: List[str]):
                     async for page in process_section_pages(pages, session, semaphore, pbar):
                         # Write page content
                         if page.title:
-                            f.write(f"\n### {page.title}\n\n")
+                            f.write(f"\n### {page.title}\n\n")  # Write the title again for each page.
                         if page.content:
                             f.write(f"{page.content}\n\n")
-                    
+
                     logger.info(f"Completed section: {section}")
-                    f.write("\n---\n")
 
 async def main():
     """Main execution function."""
-    log_info("Starting Pydantic AI documentation scraper")
+    log_info("Starting LangGraph documentation scraper")
     
-    urls = get_pydantic_ai_docs_urls()
+    urls = get_langgraph_docs_urls()
     if not urls:
         logger.error("No URLs found in sitemap")
         return
