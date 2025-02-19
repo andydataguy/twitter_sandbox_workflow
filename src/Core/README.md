@@ -34,10 +34,7 @@ The `src/Core` directory, and particularly `graph.py`, is the engine room of our
 
 As you delve deeper into the codebase, remember that `src/Core` is the central point of reference.  Understanding its structure and the roles of its subdirectories and files is key to mastering the intricacies of the Twitter Sandbox Workflow system.
 
-
 # src/Core/graph.py: The LangGraph Orchestration Center - Directing the Workflow Symphony
-
-> Editor's notes: The `graph.py` file acts as the core orchestration center for the LangGraph system, playing a critical role in managing and directing the workflow execution throughout the entire graph. As the heart of the system, it coordinates various components by defining nodes, edges, and subgraphs, thereby facilitating the construction of intricate workflows. The focus on maintaining a clean and efficient `graph.py` is paramount; it ensures that the file remains dedicated to task coordination, which enhances both readability and maintainability. By abstracting detailed implementations into respective nodes and edges and data models, the `graph.py` file upholds a clear separation of concerns, allowing developers to understand the overarching workflow structure at a glance without being bogged down by complex logic. This approach not only simplifies debugging and future modifications but also aligns with best practices for scalable and modular software design.
 
 **Purpose:  Centralized Orchestration of the Multi-Agent Workflow**
 
@@ -76,3 +73,5 @@ Within `graph.py`, we define the following key elements that structure our LangG
 *   **Invoke the Graph:**  `main.py` in the root directory uses the compiled graph to initiate workflow execution, passing initial state and user inputs to `graph.py`.
 
 By keeping `graph.py` clean, focused, and well-organized, we ensure that it remains the efficient and maintainable orchestration center for our powerful LangGraph system.  This strategic separation of concerns is essential for building a scalable and robust Agent Data Platform.
+
+> Editor's notes: The `graph.py` file acts as the core orchestration center for the LangGraph system, playing a critical role in managing and directing the workflow execution throughout the entire graph. As the heart of the system, it coordinates various components by defining nodes, edges, and subgraphs, thereby facilitating the construction of intricate workflows. The focus on maintaining a clean and efficient `graph.py` is paramount; it ensures that the file remains dedicated to task coordination, which enhances both readability and maintainability. By abstracting detailed implementations into respective nodes and edges and data models, the `graph.py` file upholds a clear separation of concerns, allowing developers to understand the overarching workflow structure at a glance without being bogged down by complex logic. This approach not only simplifies debugging and future modifications but also aligns with best practices for scalable and modular software design.

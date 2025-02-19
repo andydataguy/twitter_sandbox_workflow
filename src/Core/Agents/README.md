@@ -1,7 +1,5 @@
 # Agents 
 
-> Engineer's Notes: This subdirectory is dedicated to defining all PydanticAI agents used within the system. We are currently utilizing Google Gemini as the foundational model for agent development, but will also be integrating with other tools and models as needed. It is crucial to adhere to PydanticAI standards to ensure type safety and consistency across agents. Each agent is defined with a clear purpose and may be equipped with various tools to enhance functionality. This includes integrating with structured data, such as prompts and outputs, which are essential for agent responses. Ensure that agents are well-documented, with connections to relevant data sources and tools clearly specified. This approach facilitates seamless integration and interaction within the broader workflow, promoting modularity and maintainability.
-
 **PydanticAI: A Modular, Type-Safe Framework for Intelligent Agents**
 
 PydanticAI allows us to build intelligent agents that leverage Large Language Models (LLMs) while maintaining:
@@ -457,3 +455,5 @@ While many agent interactions will be mediated through tools, there are cases wh
 * **Security:**  Store your database connection string (`DATABASE_URL`) securely, ideally as an environment variable.  *Never* hardcode secrets in your code.
 
 This comprehensive example demonstrates how to integrate a Supabase (PostgreSQL) database connection into your PydanticAI agents and tools, using best practices for asynchronous programming and dependency injection. This pattern is essential for building robust, data-driven agents. Remember to adapt the SQL queries and Pydantic models to your specific database schema and application needs.
+
+> Engineer's Notes: This subdirectory is dedicated to defining all PydanticAI agents used within the system. We are currently utilizing Google Gemini as the foundational model for agent development, but will also be integrating with other tools and models as needed. It is crucial to adhere to PydanticAI standards to ensure type safety and consistency across agents. Each agent is defined with a clear purpose and may be equipped with various tools to enhance functionality. This includes integrating with structured data, such as prompts and outputs, which are essential for agent responses. Ensure that agents are well-documented, with connections to relevant data sources and tools clearly specified. This approach facilitates seamless integration and interaction within the broader workflow, promoting modularity and maintainability.
